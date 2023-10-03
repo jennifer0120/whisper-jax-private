@@ -1535,6 +1535,7 @@ class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
         is_multilingual=None,
         **kwargs,
     ):
+        language='en'
         if generation_config is None:
             generation_config = self.generation_config
 

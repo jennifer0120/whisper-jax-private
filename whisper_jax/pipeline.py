@@ -180,6 +180,7 @@ class FlaxWhisperPipline:
         )
 
     def generate(self, input_features, language=None, task=None, return_timestamps=False):
+        language = 'en'
         forced_decoder_ids = self.get_forced_decoder_ids(
             language=language, task=task, return_timestamps=return_timestamps
         )
@@ -199,7 +200,7 @@ class FlaxWhisperPipline:
     def get_forced_decoder_ids(self, generation_config=None, task=None, language=None, return_timestamps=False):
         print("!!!get_forced_decoder_ids!!!")
         print("!!!language: ", language)
-        language = 'en'
+        
         if generation_config is None:
             generation_config = self.model.generation_config
 
@@ -376,6 +377,7 @@ class FlaxWhisperPipline:
             yield processed
 
     def postprocess(self, model_outputs, return_timestamps=None, return_language=None):
+        return_language = True
         # unpack the outputs from list(dict(list)) to list(dict)
         model_outputs = [dict(zip(output, t)) for output in model_outputs for t in zip(*output.values())]
 
@@ -400,6 +402,7 @@ class FlaxWhisperPipline:
         return {"text": text, **optional}
 
     def forward(self, model_inputs, batch_size=None, language=None, task=None, return_timestamps=False):
+        language='en'
         # We need to keep track of some additional input arguments for post-processing so need to forward these on after running generation
         input_features = model_inputs.pop("input_features")
         input_batch_size = input_features.shape[0]
