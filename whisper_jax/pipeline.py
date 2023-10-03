@@ -402,6 +402,7 @@ class FlaxWhisperPipline:
         return {"text": text, **optional}
 
     def forward(self, model_inputs, batch_size=None, language=None, task=None, return_timestamps=False):
+        print("!!!forward")
         language='en'
         # We need to keep track of some additional input arguments for post-processing so need to forward these on after running generation
         input_features = model_inputs.pop("input_features")
