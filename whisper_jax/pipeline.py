@@ -179,10 +179,9 @@ class FlaxWhisperPipline:
             static_argnums=(3,),
         )
 
-    def generate(self, input_features, language=None, task=None, return_timestamps=False):
-        language = 'en'
+    def generate(self, input_features, language="en", task=None, return_timestamps=False):
         forced_decoder_ids = self.get_forced_decoder_ids(
-            language=language, task=task, return_timestamps=return_timestamps
+            language="en", task=task, return_timestamps=return_timestamps
         )
         if not self.is_sharded:
             # if we're using pmap we need to manually replicate the input data across devices and gather the output tokens
@@ -197,7 +196,7 @@ class FlaxWhisperPipline:
             ).sequences
         return output_ids
 
-    def get_forced_decoder_ids(self, generation_config=None, task=None, language=None, return_timestamps=False):
+    def get_forced_decoder_ids(self, generation_config=None, task=None, language="en", return_timestamps=False):
         print("!!!get_forced_decoder_ids!!!")
         print("!!!language: ", language)
         
@@ -376,8 +375,7 @@ class FlaxWhisperPipline:
                 processed["stride"] = stride
             yield processed
 
-    def postprocess(self, model_outputs, return_timestamps=None, return_language=None):
-        return_language = True
+    def postprocess(self, model_outputs, return_timestamps=None, return_language=True):
         # unpack the outputs from list(dict(list)) to list(dict)
         model_outputs = [dict(zip(output, t)) for output in model_outputs for t in zip(*output.values())]
 
@@ -401,9 +399,7 @@ class FlaxWhisperPipline:
         )
         return {"text": text, **optional}
 
-    def forward(self, model_inputs, batch_size=None, language=None, task=None, return_timestamps=False):
-        print("!!!forward")
-        language='en'
+    def forward(self, model_inputs, batch_size=None, language="en", task=None, return_timestamps=False):
         # We need to keep track of some additional input arguments for post-processing so need to forward these on after running generation
         input_features = model_inputs.pop("input_features")
         input_batch_size = input_features.shape[0]
@@ -412,7 +408,7 @@ class FlaxWhisperPipline:
             padding = np.zeros([batch_size - input_batch_size, *input_features.shape[1:]], input_features.dtype)
             input_features = np.concatenate([input_features, padding])
 
-        pred_ids = self.generate(input_features, language=language, task=task, return_timestamps=return_timestamps)[
+        pred_ids = self.generate(input_features, language="en", task=task, return_timestamps=return_timestamps)[
             :input_batch_size
         ]
 
@@ -431,7 +427,7 @@ class FlaxWhisperPipline:
         chunk_length_s=30.0,
         stride_length_s=None,
         batch_size=None,
-        language=None,
+        language="en",
         task=None,
         return_timestamps=None,
         generate_kwargs=None,
@@ -505,7 +501,7 @@ class FlaxWhisperPipline:
         for batch in dataloader:
             model_outputs.append(
                 self.forward(
-                    batch, batch_size=batch_size, language=language, task=task, return_timestamps=return_timestamps
+                    batch, batch_size=batch_size, language="en", task=task, return_timestamps=return_timestamps
                 )
             )
         post_processed = self.postprocess(model_outputs, return_timestamps=return_timestamps)
