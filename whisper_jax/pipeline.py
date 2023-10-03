@@ -197,6 +197,8 @@ class FlaxWhisperPipline:
         return output_ids
 
     def get_forced_decoder_ids(self, generation_config=None, task=None, language=None, return_timestamps=False):
+        print("!!!get_forced_decoder_ids!!!")
+        print("!!!language: ", language)
         if generation_config is None:
             generation_config = self.model.generation_config
 
