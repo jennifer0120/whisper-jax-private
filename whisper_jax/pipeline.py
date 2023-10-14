@@ -98,6 +98,7 @@ class FlaxWhisperPipline:
         ### ADDED by Jennifer
         prompt = "Hey how is it going?"
         prompt_ids = self.processor.get_prompt_ids(prompt)
+        print("!!!prompt_ids: ", prompt_ids)
         def generate(params, input_features, forced_decoder_ids, return_timestamps):
             output_ids = self.model.pipeline_generate(
                 input_features,
