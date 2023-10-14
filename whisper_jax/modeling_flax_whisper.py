@@ -1611,11 +1611,11 @@ class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
             logits_processor.append(FlaxWhisperTimeStampLogitsProcessor(generation_config, self.config, 1))
 
         # TODO: Remove this later on
-        kwargs["output_attentions"] = True
-        kwargs["return_dict_in_generate"] = True
+        # kwargs["output_attentions"] = True
+        # kwargs["return_dict_in_generate"] = True
 
-        print("!!!pipeline_generate")
-        print("!!!kwargs: ", kwargs)
+        # print("!!!pipeline_generate")
+        # print("!!!kwargs: ", kwargs)
         return super().generate(
             input_features,
             generation_config,
