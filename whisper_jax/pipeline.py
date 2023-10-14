@@ -95,6 +95,9 @@ class FlaxWhisperPipline:
             batch_size if batch_size is not None else self.min_batch_size
         )  # we need a minimum of 1 batch per-device
 
+        ### ADDED by Jennifer
+        prompt = "Hey how is it going?"
+        prompt_ids = self.processor.get_prompt_ids(prompt)
         def generate(params, input_features, forced_decoder_ids, return_timestamps):
             output_ids = self.model.pipeline_generate(
                 input_features,
@@ -102,6 +105,7 @@ class FlaxWhisperPipline:
                 forced_decoder_ids=forced_decoder_ids,
                 return_timestamps=return_timestamps,
                 max_length=self.max_length,
+                prompt_ids=prompt_ids,
             )
             print("!!!output_ids: ", output_ids)
             return output_ids
