@@ -389,8 +389,6 @@ class FlaxWhisperPipline:
                 output["stride"] = chunk_len, stride_left, stride_right
 
         print("!!!postprocess")
-        print("!!!model_outputs: ", model_outputs)
-        print("!!!self.tokenizer: ", self.tokenizer)
         text, optional = self.tokenizer._decode_asr(
             model_outputs,
             return_timestamps=return_timestamps,
@@ -399,7 +397,7 @@ class FlaxWhisperPipline:
         )
         return {"text": text, **optional}
 
-    def forward(self, model_inputs, batch_size=None, language="en", task=None, return_timestamps=False):
+    def forward(self, model_inputs, batch_size=None, language=None, task=None, return_timestamps=False):
         # We need to keep track of some additional input arguments for post-processing so need to forward these on after running generation
         input_features = model_inputs.pop("input_features")
         input_batch_size = input_features.shape[0]
@@ -408,7 +406,7 @@ class FlaxWhisperPipline:
             padding = np.zeros([batch_size - input_batch_size, *input_features.shape[1:]], input_features.dtype)
             input_features = np.concatenate([input_features, padding])
 
-        pred_ids = self.generate(input_features, language="en", task=task, return_timestamps=return_timestamps)[
+        pred_ids = self.generate(input_features, language=language, task=task, return_timestamps=return_timestamps)[
             :input_batch_size
         ]
 
@@ -501,7 +499,7 @@ class FlaxWhisperPipline:
         for batch in dataloader:
             model_outputs.append(
                 self.forward(
-                    batch, batch_size=batch_size, language="en", task=task, return_timestamps=return_timestamps
+                    batch, batch_size=batch_size, language=language, task=task, return_timestamps=return_timestamps
                 )
             )
         post_processed = self.postprocess(model_outputs, return_timestamps=return_timestamps)
