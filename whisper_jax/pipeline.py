@@ -162,9 +162,6 @@ class FlaxWhisperPipline:
         self.is_sharded = True
 
         def generate(params, input_features, forced_decoder_ids, return_timestamps):
-            print("!!!inner generate function")
-            print("!!!params: ", params)
-            print("!!!input_features: ", input_features)
             output_ids = self.model.pipeline_generate(
                 input_features,
                 params=params,
@@ -175,7 +172,6 @@ class FlaxWhisperPipline:
             return output_ids
 
         # Use pjit for generate only once we've sharded the params
-        print("!!!partitioner.partition")
         self.p_generate = partitioner.partition(
             generate,
             in_axis_resources=(params_spec, P("data"), None),
@@ -184,8 +180,6 @@ class FlaxWhisperPipline:
         )
 
     def generate(self, input_features, language="en", task=None, return_timestamps=False):
-        print("!!outer generate function")
-        print("!!input_features: ", input_features)
         forced_decoder_ids = self.get_forced_decoder_ids(
             language="en", task=task, return_timestamps=return_timestamps
         )
@@ -202,10 +196,7 @@ class FlaxWhisperPipline:
             ).sequences
         return output_ids
 
-    def get_forced_decoder_ids(self, generation_config=None, task=None, language="en", return_timestamps=False):
-        print("!!!get_forced_decoder_ids!!!2")
-        print("!!!language: ", language)
-        
+    def get_forced_decoder_ids(self, generation_config=None, task=None, language="en", return_timestamps=False):        
         if generation_config is None:
             generation_config = self.model.generation_config
 
@@ -397,6 +388,9 @@ class FlaxWhisperPipline:
                 stride_right /= sampling_rate
                 output["stride"] = chunk_len, stride_left, stride_right
 
+        print("!!!postprocess")
+        print("!!!model_outputs: ", model_outputs)
+        print("!!!self.tokenizer: ", self.tokenizer)
         text, optional = self.tokenizer._decode_asr(
             model_outputs,
             return_timestamps=return_timestamps,
@@ -493,7 +487,6 @@ class FlaxWhisperPipline:
                     "there", "timestamps": (1.0, 1.5)}]`. The original full text can roughly be recovered by doing
                     `"".join(chunk["text"] for chunk in output["chunks"])`.
         """
-        print("!!!__call__: ", language)
         batch_size = batch_size if batch_size is not None else self.batch_size
         if batch_size % self.min_batch_size != 0:
             raise ValueError(
