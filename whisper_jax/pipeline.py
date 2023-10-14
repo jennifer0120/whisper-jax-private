@@ -103,6 +103,7 @@ class FlaxWhisperPipline:
                 return_timestamps=return_timestamps,
                 max_length=self.max_length,
             )
+            print("!!!output_ids: ", output_ids)
             return output_ids
 
         # use pmap for DP by default - this is compatible on a Colab TPU v2
