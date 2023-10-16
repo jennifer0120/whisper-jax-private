@@ -254,7 +254,7 @@ class FlaxWhisperPipline:
             decoder_start_token_id, *text_prompt_ids = prompt_ids
             # Slicing the text prompt ids in a manner consistent with the OpenAI implementation
             # to accomodate context space for the prefix (see https://github.com/openai/whisper/blob/c09a7ae299c4c34c5839a76380ae407e7d785914/whisper/decoding.py#L599)
-            text_prompt_ids = text_prompt_ids[-self.config.max_length // 2 - 1 :]
+            text_prompt_ids = text_prompt_ids[-self.max_length // 2 - 1 :]
             # Set the decoder_start_token_id to <|startofprev|>
             kwargs.update({"decoder_start_token_id": decoder_start_token_id})
 
@@ -280,6 +280,8 @@ class FlaxWhisperPipline:
             forced_decoder_ids = [(rank + 1, token) for rank, token in enumerate(forced_decoder_ids)]
             print("!!!pipeline forced_decoder_ids: ", forced_decoder_ids)
             generation_config.forced_decoder_ids = forced_decoder_ids
+
+        self.model.generation_config = generation_config
 
         return forced_decoder_ids
 
@@ -429,6 +431,11 @@ class FlaxWhisperPipline:
                 output["stride"] = chunk_len, stride_left, stride_right
 
         print("!!!postprocess")
+        print("model_outputs: ", model_outputs)
+        begin_index = self.model.generation_config.forced_decoder_ids[-1][0]
+        print("begin_index: ", begin_index)
+        # begin_index += generation_config.forced_decoder_ids[-1][0]
+        # recheck this
         text, optional = self.tokenizer._decode_asr(
             model_outputs,
             return_timestamps=return_timestamps,
