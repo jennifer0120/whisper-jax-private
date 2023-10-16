@@ -1632,7 +1632,7 @@ class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
             kwargs.update({"decoder_start_token_id": decoder_start_token_id})
 
             # Update the max generation length to include the prompt
-            generation_config.max_length = 445
+            generation_config.max_length = 448
             print("!!!generation_config.max_length: ", generation_config.max_length)
             specified_max_length = kwargs.pop("max_new_tokens", None) or kwargs.pop("max_length", None)
             default_max_length = generation_config.max_new_tokens or generation_config.max_length

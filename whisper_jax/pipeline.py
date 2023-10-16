@@ -96,7 +96,7 @@ class FlaxWhisperPipline:
         )  # we need a minimum of 1 batch per-device
 
         ### ADDED by Jennifer
-        prompt = "Hey how is it going?"
+        prompt = "Hey how are you?"
         prompt_ids = self.processor.get_prompt_ids(prompt)
         print("!!!prompt_ids: ", prompt_ids)
         def generate(params, input_features, forced_decoder_ids, return_timestamps):
