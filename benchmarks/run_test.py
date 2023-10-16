@@ -1,7 +1,7 @@
 from whisper_jax import FlaxWhisperPipline
 import jax.numpy as jnp
 
-pipeline = FlaxWhisperPipline("openai/whisper-large-v2", dtype=jnp.bfloat16, batch_size=16, max_length=430)
+pipeline = FlaxWhisperPipline("openai/whisper-large-v2", dtype=jnp.bfloat16, batch_size=16, prompt="Streamyard.")
 
 from jax.experimental.compilation_cache import compilation_cache as cc
 
