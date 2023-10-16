@@ -392,6 +392,8 @@ class FlaxWhisperPipline:
                 stride_right /= sampling_rate
                 output["stride"] = chunk_len, stride_left, stride_right
 
+        print("model_outputs: ", model_outputs)
+        print("model_outputs.shape: ", model_outputs.shape)
         text, optional = self.tokenizer._decode_asr(
             model_outputs,
             return_timestamps=return_timestamps,
