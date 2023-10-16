@@ -1630,14 +1630,17 @@ class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
             non_prompt_max_length = specified_max_length or default_max_length
             kwargs["max_new_tokens"] = non_prompt_max_length + len(text_prompt_ids) + 1
 
+            # something seems wrong here. 
+            # generation_config.forced_decoder_ids is already set to None
             # Reformat the forced_decoder_ids to incorporate the prompt
-            non_prompt_forced_decoder_ids = (
-                kwargs.pop("forced_decoder_ids", None) or generation_config.forced_decoder_ids
-            )
+            # non_prompt_forced_decoder_ids = (
+            #     kwargs.pop("forced_decoder_ids", None) or generation_config.forced_decoder_ids
+            # )
             forced_decoder_ids = [
                 *text_prompt_ids,
                 generation_config.decoder_start_token_id,
-                *[token for _rank, token in non_prompt_forced_decoder_ids],
+                *[token for _rank, token in forced_decoder_ids],
+                # *[token for _rank, token in non_prompt_forced_decoder_ids],
             ]
             forced_decoder_ids = [(rank + 1, token) for rank, token in enumerate(forced_decoder_ids)]
             generation_config.forced_decoder_ids = forced_decoder_ids
