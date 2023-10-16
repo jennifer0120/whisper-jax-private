@@ -96,19 +96,16 @@ class FlaxWhisperPipline:
             batch_size if batch_size is not None else self.min_batch_size
         )  # we need a minimum of 1 batch per-device
 
-        ### ADDED by Jennifer
         prompt_ids = self.processor.get_prompt_ids(prompt)
         def generate(params, input_features, forced_decoder_ids, return_timestamps):
-            print("!!!forced_decoder_ids in generate: ", forced_decoder_ids)
             output_ids = self.model.pipeline_generate(
                 input_features,
                 params=params,
                 forced_decoder_ids=forced_decoder_ids,
+                prompt_ids=prompt_ids,
                 return_timestamps=return_timestamps,
                 max_length=self.max_length,
-                prompt_ids=prompt_ids,
             )
-            print("!!!output_ids: ", output_ids)
             return output_ids
 
         # use pmap for DP by default - this is compatible on a Colab TPU v2
@@ -173,7 +170,7 @@ class FlaxWhisperPipline:
                 params=params,
                 forced_decoder_ids=forced_decoder_ids,
                 return_timestamps=return_timestamps,
-                max_length=self.max_length
+                max_length=self.max_length,
             )
             return output_ids
 
@@ -185,11 +182,10 @@ class FlaxWhisperPipline:
             static_argnums=(3,),
         )
 
-    def generate(self, input_features, language="en", task=None, return_timestamps=False):
-        print("!!!outer generate")
+    def generate(self, input_features, language=None, task=None, return_timestamps=False):
         forced_decoder_ids = self.get_forced_decoder_ids(
-            language=language, task=task, return_timestamps=return_timestamps)
-        print("!!!outer generate forced_decoder_ids: ", forced_decoder_ids)
+            language=language, task=task, return_timestamps=return_timestamps
+        )
         if not self.is_sharded:
             # if we're using pmap we need to manually replicate the input data across devices and gather the output tokens
             output_ids = self.p_generate(
@@ -203,7 +199,7 @@ class FlaxWhisperPipline:
             ).sequences
         return output_ids
 
-    def get_forced_decoder_ids(self, generation_config=None, task=None, language=None, return_timestamps=False):        
+    def get_forced_decoder_ids(self, generation_config=None, task=None, language=None, return_timestamps=False):
         if generation_config is None:
             generation_config = self.model.generation_config
 
@@ -379,7 +375,7 @@ class FlaxWhisperPipline:
                 processed["stride"] = stride
             yield processed
 
-    def postprocess(self, model_outputs, return_timestamps=None, return_language=True):
+    def postprocess(self, model_outputs, return_timestamps=None, return_language=None):
         # unpack the outputs from list(dict(list)) to list(dict)
         model_outputs = [dict(zip(output, t)) for output in model_outputs for t in zip(*output.values())]
 
@@ -395,13 +391,6 @@ class FlaxWhisperPipline:
                 stride_right /= sampling_rate
                 output["stride"] = chunk_len, stride_left, stride_right
 
-        print("!!!postprocess")
-        print("model_outputs: ", model_outputs)
-        print("model_outputs.shape: ", model_outputs.shape)
-        begin_index = self.model.generation_config.forced_decoder_ids[-1][0]
-        print("begin_index: ", begin_index)
-        # begin_index += generation_config.forced_decoder_ids[-1][0]
-        # recheck this
         text, optional = self.tokenizer._decode_asr(
             model_outputs,
             return_timestamps=return_timestamps,
@@ -409,7 +398,7 @@ class FlaxWhisperPipline:
             time_precision=time_precision,
         )
         return {"text": text, **optional}
-                                                       
+
     def forward(self, model_inputs, batch_size=None, language=None, task=None, return_timestamps=False):
         # We need to keep track of some additional input arguments for post-processing so need to forward these on after running generation
         input_features = model_inputs.pop("input_features")
@@ -438,7 +427,7 @@ class FlaxWhisperPipline:
         chunk_length_s=30.0,
         stride_length_s=None,
         batch_size=None,
-        language="en",
+        language=None,
         task=None,
         return_timestamps=None,
         generate_kwargs=None,
