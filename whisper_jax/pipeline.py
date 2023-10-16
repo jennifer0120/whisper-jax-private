@@ -394,7 +394,6 @@ class FlaxWhisperPipline:
                 output["stride"] = chunk_len, stride_left, stride_right
 
         print("model_outputs: ", model_outputs)
-        print("model_outputs.shape: ", model_outputs.shape)
         print("self.model.generation_config: ", self.model.generation_config)        
         text, optional = self.tokenizer._decode_asr(
             model_outputs,
