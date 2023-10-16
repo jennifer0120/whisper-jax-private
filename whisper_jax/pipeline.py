@@ -97,7 +97,7 @@ class FlaxWhisperPipline:
         )  # we need a minimum of 1 batch per-device
 
         ### ADDED by Jennifer
-        prompt_ids = self.processor.get_prompt_ids(prompt)
+        self.prompt_ids = self.processor.get_prompt_ids(prompt)
         def generate(params, input_features, forced_decoder_ids, return_timestamps):
             print("!!!forced_decoder_ids in generate: ", forced_decoder_ids)
             output_ids = self.model.pipeline_generate(
@@ -106,7 +106,6 @@ class FlaxWhisperPipline:
                 forced_decoder_ids=forced_decoder_ids,
                 return_timestamps=return_timestamps,
                 max_length=self.max_length,
-                prompt_ids=prompt_ids,
             )
             print("!!!output_ids: ", output_ids)
             return output_ids
@@ -168,7 +167,6 @@ class FlaxWhisperPipline:
         self.is_sharded = True
 
         def generate(params, input_features, forced_decoder_ids, return_timestamps):
-            print("!!!inner generate")
             output_ids = self.model.pipeline_generate(
                 input_features,
                 params=params,
@@ -189,7 +187,7 @@ class FlaxWhisperPipline:
     def generate(self, input_features, language="en", task=None, return_timestamps=False):
         print("!!!outer generate")
         forced_decoder_ids = self.get_forced_decoder_ids(
-            language=language, task=task, return_timestamps=return_timestamps
+            language=language, task=task, return_timestamps=return_timestamps, prompt_ids=self.prompt_ids
         )
         print("!!!outer generate forced_decoder_ids: ", forced_decoder_ids)
         if not self.is_sharded:
