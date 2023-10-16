@@ -377,6 +377,7 @@ class FlaxWhisperPipline:
             yield processed
 
     def postprocess(self, model_outputs, return_timestamps=None, return_language=None):
+        print("postprocess")
         # unpack the outputs from list(dict(list)) to list(dict)
         model_outputs = [dict(zip(output, t)) for output in model_outputs for t in zip(*output.values())]
 
@@ -394,6 +395,7 @@ class FlaxWhisperPipline:
 
         print("model_outputs: ", model_outputs)
         print("model_outputs.shape: ", model_outputs.shape)
+        print("self.model.generation_config: ", self.model.generation_config)        
         text, optional = self.tokenizer._decode_asr(
             model_outputs,
             return_timestamps=return_timestamps,
