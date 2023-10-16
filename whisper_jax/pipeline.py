@@ -168,6 +168,10 @@ class FlaxWhisperPipline:
         self.is_sharded = True
 
         def generate(params, input_features, forced_decoder_ids, return_timestamps):
+            forced_decoder_ids = self.tokenizer.get_decoder_prompt_ids(
+                language="en", task="transcribe"
+            )
+            print("!!!forced_decoder_ids in generate: ", forced_decoder_ids)
             output_ids = self.model.pipeline_generate(
                 input_features,
                 params=params,
@@ -187,7 +191,7 @@ class FlaxWhisperPipline:
 
     def generate(self, input_features, language="en", task=None, return_timestamps=False):
         forced_decoder_ids = self.get_forced_decoder_ids(
-            language="en", task=task, return_timestamps=return_timestamps
+            language=language, task=task, return_timestamps=return_timestamps
         )
         if not self.is_sharded:
             # if we're using pmap we need to manually replicate the input data across devices and gather the output tokens
@@ -202,7 +206,7 @@ class FlaxWhisperPipline:
             ).sequences
         return output_ids
 
-    def get_forced_decoder_ids(self, generation_config=None, task=None, language="en", return_timestamps=False):        
+    def get_forced_decoder_ids(self, generation_config=None, task=None, language=None, return_timestamps=False):        
         if generation_config is None:
             generation_config = self.model.generation_config
 
