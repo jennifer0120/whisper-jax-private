@@ -99,9 +99,6 @@ class FlaxWhisperPipline:
         ### ADDED by Jennifer
         prompt_ids = self.processor.get_prompt_ids(prompt)
         def generate(params, input_features, forced_decoder_ids, return_timestamps):
-            forced_decoder_ids = self.tokenizer.get_decoder_prompt_ids(
-                language="en", task="transcribe", no_timestamps=False
-            )
             print("!!!forced_decoder_ids in generate: ", forced_decoder_ids)
             output_ids = self.model.pipeline_generate(
                 input_features,
