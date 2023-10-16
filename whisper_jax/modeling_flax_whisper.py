@@ -1637,9 +1637,9 @@ class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
             non_prompt_max_length = specified_max_length or default_max_length
             kwargs["max_new_tokens"] = non_prompt_max_length + len(text_prompt_ids)
 
-
-            print("!!!generation_config: ", generation_config)
-            print("!!!generation_config.forced_decoder_ids: ", generation_config.forced_decoder_ids)
+            print("!!!non_prompt_max_length: ", non_prompt_max_length)
+            print("!!!text_prompt_ids: ", text_prompt_ids)
+            print("!!!kwargs: ", kwargs)
 
             # Reformat the forced_decoder_ids to incorporate the prompt
             # non_prompt_forced_decoder_ids = (
