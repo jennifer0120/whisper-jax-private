@@ -89,8 +89,7 @@ class FlaxWhisperPipline:
             dtype=self.dtype,
         )
 
-        # self.max_length = max_length if max_length is not None else self.model.generation_config.max_length
-        self.max_length = 447
+        self.max_length = max_length if max_length is not None else self.model.generation_config.max_length
         self.min_batch_size = jax.local_device_count()
         self.batch_size = (
             batch_size if batch_size is not None else self.min_batch_size
