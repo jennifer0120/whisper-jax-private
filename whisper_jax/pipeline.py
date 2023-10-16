@@ -59,6 +59,7 @@ class FlaxWhisperPipline:
         dtype=jnp.float32,
         batch_size=None,
         max_length=None,
+        prompt="",
     ):
         """
         Args
@@ -96,11 +97,7 @@ class FlaxWhisperPipline:
         )  # we need a minimum of 1 batch per-device
 
         ### ADDED by Jennifer
-        # prompt = "Hey how are you?"
-        prompt = "- Hey how are you doing? - I'm doing good. How are you?"
-        print("!!!prompt: ", prompt)
         prompt_ids = self.processor.get_prompt_ids(prompt)
-        print("!!!prompt_ids: ", prompt_ids)
         def generate(params, input_features, forced_decoder_ids, return_timestamps):
             forced_decoder_ids = self.tokenizer.get_decoder_prompt_ids(
                 language="en", task="transcribe", no_timestamps=False
@@ -174,12 +171,13 @@ class FlaxWhisperPipline:
         self.is_sharded = True
 
         def generate(params, input_features, forced_decoder_ids, return_timestamps):
+            print("!!!inner generate")
             output_ids = self.model.pipeline_generate(
                 input_features,
                 params=params,
                 forced_decoder_ids=forced_decoder_ids,
                 return_timestamps=return_timestamps,
-                max_length=self.max_length,
+                max_length=self.max_length
             )
             return output_ids
 
@@ -192,9 +190,11 @@ class FlaxWhisperPipline:
         )
 
     def generate(self, input_features, language="en", task=None, return_timestamps=False):
+        print("!!!outer generate")
         forced_decoder_ids = self.get_forced_decoder_ids(
             language=language, task=task, return_timestamps=return_timestamps
         )
+        print("!!!outer generate forced_decoder_ids: ", forced_decoder_ids)
         if not self.is_sharded:
             # if we're using pmap we need to manually replicate the input data across devices and gather the output tokens
             output_ids = self.p_generate(
@@ -208,7 +208,7 @@ class FlaxWhisperPipline:
             ).sequences
         return output_ids
 
-    def get_forced_decoder_ids(self, generation_config=None, task=None, language=None, return_timestamps=False):        
+    def get_forced_decoder_ids(self, generation_config=None, task=None, language=None, return_timestamps=False, prompt_ids=None):        
         if generation_config is None:
             generation_config = self.model.generation_config
 
@@ -252,6 +252,42 @@ class FlaxWhisperPipline:
             if forced_decoder_ids and forced_decoder_ids[-1][0] != generation_config.no_timestamps_token_id:
                 idx = forced_decoder_ids[-1][0] + 1 if forced_decoder_ids else 1
                 forced_decoder_ids.append((idx, generation_config.no_timestamps_token_id))
+
+        # Newly added code
+        if prompt_ids is not None:
+            if kwargs.get("decoder_start_token_id") is not None:
+                raise ValueError(
+                    "When specifying `prompt_ids`, you cannot also specify `decoder_start_token_id` as it gets overwritten."
+                )
+            prompt_ids = prompt_ids.tolist()
+            decoder_start_token_id, *text_prompt_ids = prompt_ids
+            # Slicing the text prompt ids in a manner consistent with the OpenAI implementation
+            # to accomodate context space for the prefix (see https://github.com/openai/whisper/blob/c09a7ae299c4c34c5839a76380ae407e7d785914/whisper/decoding.py#L599)
+            text_prompt_ids = text_prompt_ids[-self.config.max_length // 2 - 1 :]
+            # Set the decoder_start_token_id to <|startofprev|>
+            kwargs.update({"decoder_start_token_id": decoder_start_token_id})
+
+            # Update the max generation length to include the prompt
+            specified_max_length = kwargs.pop("max_new_tokens", None) or kwargs.pop("max_length", None)
+            default_max_length = generation_config.max_new_tokens or generation_config.max_length
+            non_prompt_max_length = specified_max_length or default_max_length
+            # kwargs["max_new_tokens"] = non_prompt_max_length + len(text_prompt_ids)
+            kwargs = non_prompt_max_length + len(text_prompt_ids) + 1
+
+            # Reformat the forced_decoder_ids to incorporate the prompt
+            # non_prompt_forced_decoder_ids = (
+            #     kwargs.pop("forced_decoder_ids", None) or generation_config.forced_decoder_ids
+            # )
+
+            # non_prompt_forced_decoder_ids = [(1, 50259), (2, 50359), (3, 50363)]
+            non_prompt_forced_decoder_ids = [(1, 50259), (2, 50359)]
+            forced_decoder_ids = [
+                *text_prompt_ids,
+                generation_config.decoder_start_token_id,
+                *[token for _rank, token in non_prompt_forced_decoder_ids],
+            ]
+            forced_decoder_ids = [(rank + 1, token) for rank, token in enumerate(forced_decoder_ids)]
+            generation_config.forced_decoder_ids = forced_decoder_ids
 
         return forced_decoder_ids
 
