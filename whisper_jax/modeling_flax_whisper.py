@@ -1640,11 +1640,13 @@ class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
 
             print("!!!generation_config: ", generation_config)
             print("!!!generation_config.forced_decoder_ids: ", generation_config.forced_decoder_ids)
-            # Reformat the forced_decoder_ids to incorporate the prompt
-            non_prompt_forced_decoder_ids = (
-                kwargs.pop("forced_decoder_ids", None) or generation_config.forced_decoder_ids
-            )
 
+            # Reformat the forced_decoder_ids to incorporate the prompt
+            # non_prompt_forced_decoder_ids = (
+            #     kwargs.pop("forced_decoder_ids", None) or generation_config.forced_decoder_ids
+            # )
+
+            non_prompt_forced_decoder_ids = [(1, 50259), (2, 50359), (3, 50363)]
             print("!!!non_prompt_forced_decoder_ids: ", non_prompt_forced_decoder_ids)
             forced_decoder_ids = [
                 *text_prompt_ids,
