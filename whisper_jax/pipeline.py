@@ -202,7 +202,7 @@ class FlaxWhisperPipline:
             ).sequences
             # output_ids = jax.device_get(output_ids.reshape(-1, self.max_length))
             # TODO: Check. not sure if this is right or not
-            output_ids = jax.device_get(output_ids.reshape(-1, 447))
+            output_ids = jax.device_get(output_ids.reshape(-1, 448))
         else:
             # pjit handles replication / gathering for us auto-magically
             output_ids = self.p_generate(
