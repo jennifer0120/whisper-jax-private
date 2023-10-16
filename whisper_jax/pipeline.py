@@ -98,6 +98,7 @@ class FlaxWhisperPipline:
         ### ADDED by Jennifer
         # prompt = "Hey how are you?"
         prompt = "- Hey how are you doing? - I'm doing good. How are you?"
+        print("!!!prompt: ", prompt)
         prompt_ids = self.processor.get_prompt_ids(prompt)
         print("!!!prompt_ids: ", prompt_ids)
         def generate(params, input_features, forced_decoder_ids, return_timestamps):
