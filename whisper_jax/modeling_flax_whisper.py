@@ -1651,8 +1651,9 @@ class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
             forced_decoder_ids = [
                 *text_prompt_ids,
                 generation_config.decoder_start_token_id,
-                *[token for _rank, token in non_prompt_forced_decoder_ids],
+                # *[token for _rank, token in non_prompt_forced_decoder_ids],
             ]
+            print("`!!!forced_decoder_ids: ", forced_decoder_ids)
             forced_decoder_ids = [(rank + 1, token) for rank, token in enumerate(forced_decoder_ids)]
             generation_config.forced_decoder_ids = forced_decoder_ids
 
