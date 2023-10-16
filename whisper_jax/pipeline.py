@@ -90,7 +90,7 @@ class FlaxWhisperPipline:
         )
 
         # self.max_length = max_length if max_length is not None else self.model.generation_config.max_length
-        self.max_length = 441
+        self.max_length = 447
         self.min_batch_size = jax.local_device_count()
         self.batch_size = (
             batch_size if batch_size is not None else self.min_batch_size
@@ -199,7 +199,9 @@ class FlaxWhisperPipline:
             output_ids = self.p_generate(
                 freeze(self.params), shard(input_features), forced_decoder_ids, return_timestamps
             ).sequences
-            output_ids = jax.device_get(output_ids.reshape(-1, self.max_length))
+            # output_ids = jax.device_get(output_ids.reshape(-1, self.max_length))
+            # TODO: Check. not sure if this is right or not
+            output_ids = jax.device_get(output_ids.reshape(-1, 447))
         else:
             # pjit handles replication / gathering for us auto-magically
             output_ids = self.p_generate(
