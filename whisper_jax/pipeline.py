@@ -392,12 +392,14 @@ class FlaxWhisperPipline:
                 stride_right /= sampling_rate
                 output["stride"] = chunk_len, stride_left, stride_right
         print("model_outputs: ", model_outputs)
-        prompt_tokens = np.array([50361, 1911, 577, 366, 291, 30])
-        prompt_outputs = np.pad(prompt_tokens, (0, len(model_outputs[0]['tokens'][0]) - 6), 'constant', constant_values=(50257))
-        print("!!!prompt_outputs: ", prompt_outputs)
-        print("!!! np.concatenate([prompt_outputs, model_outputs]): ",  np.concatenate([prompt_outputs, model_outputs]))
+        prompt_tokens = np.array([[50361, 1911, 577, 366, 291, 30]])
+        prompt_padded = np.pad(prompt_tokens, (0, len(model_outputs[0]['tokens'][0]) - 6), 'constant', constant_values=(50257))
+        prompt_output = {
+            "tokens": prompt_padded, "stride": (30.0, 5.0, 5.0)
+        }
+        model_outputs = np.insert(model_outputs, 0, prompt_output, axis=0)
         text, optional = self.tokenizer._decode_asr(
-            np.concatenate([prompt_outputs, model_outputs]),
+            model_outputs,
             return_timestamps=return_timestamps,
             return_language=return_language,
             time_precision=time_precision,
