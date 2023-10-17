@@ -375,7 +375,7 @@ class FlaxWhisperPipline:
                 processed["stride"] = stride
             yield processed
 
-    def postprocess(self, model_outputs, return_timestamps=None, return_language=None):
+    def postprocess(self, model_outputs, initial_prompt=None, return_timestamps=None, return_language=None):
         print("postprocess")
         # unpack the outputs from list(dict(list)) to list(dict)
         model_outputs = [dict(zip(output, t)) for output in model_outputs for t in zip(*output.values())]
@@ -391,11 +391,15 @@ class FlaxWhisperPipline:
                 stride_left /= sampling_rate
                 stride_right /= sampling_rate
                 output["stride"] = chunk_len, stride_left, stride_right
-        print("model_outputs: ", model_outputs)
-        prompt_tokens = np.array([[50361, 577, 366, 291, 30]])
-        prompt_padded = np.pad(prompt_tokens, (0, len(model_outputs[0]['tokens'][0]) - 5), 'constant', constant_values=(50257))
+        prompt_tokens = self.tokenizer.get_prompt_ids(initial_prompt)
+        print("prompt_tokens: ", prompt_tokens)
+        # prompt_tokens = np.array([[50361, 577, 366, 291, 30]])
+        # prompt_padded = np.pad(prompt_tokens, (0, len(model_outputs[0]['tokens'][0]) - 5), 'constant', constant_values=(50257))
+        # prompt_output = {
+        #     "tokens": prompt_padded, "stride": (30.0, 5.0, 5.0)
+        # }
         prompt_output = {
-            "tokens": prompt_padded, "stride": (30.0, 5.0, 5.0)
+            "tokens": prompt_tokens,
         }
         model_outputs = np.insert(model_outputs, 0, prompt_output, axis=0)
         text, optional = self.tokenizer._decode_asr(
@@ -432,6 +436,7 @@ class FlaxWhisperPipline:
         self,
         inputs,
         chunk_length_s=30.0,
+        initial_prompt=None,
         stride_length_s=None,
         batch_size=None,
         language=None,
@@ -511,5 +516,5 @@ class FlaxWhisperPipline:
                     batch, batch_size=batch_size, language=language, task=task, return_timestamps=return_timestamps
                 )
             )
-        post_processed = self.postprocess(model_outputs, return_timestamps=return_timestamps)
+        post_processed = self.postprocess(model_outputs, initial_prompt=initial_prompt, return_timestamps=return_timestamps)
         return post_processed
