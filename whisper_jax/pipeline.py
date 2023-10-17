@@ -280,6 +280,7 @@ class FlaxWhisperPipline:
             yield {"stride": strides, **processed}
 
     def preprocess_batch(self, inputs, chunk_length_s=30.0, stride_length_s=None, batch_size=None):
+        print("!!!preprocess_batch")
         if isinstance(inputs, np.ndarray):
             logger.warning(
                 "Numpy array passed as input - no sampling rate checks will be performed."
@@ -336,6 +337,7 @@ class FlaxWhisperPipline:
         if len(inputs.shape) != 1:
             raise ValueError("We expect a single channel audio input for AutomaticSpeechRecognitionPipeline")
 
+        print("!!!inputs: ", inputs)
         if stride is not None:
             if stride[0] + stride[1] > inputs.shape[0]:
                 raise ValueError("Stride is too large for input")
@@ -369,7 +371,6 @@ class FlaxWhisperPipline:
             ):
                 yield item
         else:
-            print("!!!inputs: ", inputs)
             processed = self.feature_extractor(
                 inputs, sampling_rate=self.feature_extractor.sampling_rate, return_tensors="np"
             )
