@@ -369,6 +369,7 @@ class FlaxWhisperPipline:
             ):
                 yield item
         else:
+            print("!!!inputs: ", inputs)
             processed = self.feature_extractor(
                 inputs, sampling_rate=self.feature_extractor.sampling_rate, return_tensors="np"
             )
@@ -393,7 +394,6 @@ class FlaxWhisperPipline:
                 stride_right /= sampling_rate
                 output["stride"] = chunk_len, stride_left, stride_right
 
-        print("model_outputs: ", model_outputs)
         text, optional = self.tokenizer._decode_asr(
             model_outputs,
             return_timestamps=return_timestamps,
