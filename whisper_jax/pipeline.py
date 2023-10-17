@@ -391,7 +391,7 @@ class FlaxWhisperPipline:
                 stride_left /= sampling_rate
                 stride_right /= sampling_rate
                 output["stride"] = chunk_len, stride_left, stride_right
-        prompt_tokens = self.tokenizer.get_prompt_ids(initial_prompt)
+        prompt_tokens = np.array([self.tokenizer.get_prompt_ids(initial_prompt)])
         print("prompt_tokens: ", prompt_tokens)
         # prompt_tokens = np.array([[50361, 577, 366, 291, 30]])
         # prompt_padded = np.pad(prompt_tokens, (0, len(model_outputs[0]['tokens'][0]) - 5), 'constant', constant_values=(50257))
