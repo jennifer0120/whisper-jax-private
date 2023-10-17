@@ -393,7 +393,7 @@ class FlaxWhisperPipline:
                 output["stride"] = chunk_len, stride_left, stride_right
         print("model_outputs: ", model_outputs)
         model_outputs[0]['tokens'][0] = np.add([50361, 1911, 577, 366, 291, 30], model_outputs[0]['tokens'][0])
-        print("model_outputs after: ", model_outputs)
+        print("model_outputs after 2: ", model_outputs)
         text, optional = self.tokenizer._decode_asr(
             model_outputs,
             return_timestamps=return_timestamps,
