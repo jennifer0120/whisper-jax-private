@@ -1594,7 +1594,6 @@ class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
         self,
         input_features,
         forced_decoder_ids,
-        prompt_ids=None,
         return_timestamps=False,
         generation_config=None,
         **kwargs,
@@ -1612,39 +1611,39 @@ class FlaxWhisperForConditionalGeneration(FlaxWhisperPreTrainedModel):
         if hasattr(generation_config, "return_timestamps") and return_timestamps:
             logits_processor.append(FlaxWhisperTimeStampLogitsProcessor(generation_config, self.config, 1))
 
-        if prompt_ids is not None:
-            if kwargs.get("decoder_start_token_id") is not None:
-                raise ValueError(
-                    "When specifying `prompt_ids`, you cannot also specify `decoder_start_token_id` as it gets overwritten."
-                )
-            prompt_ids = prompt_ids.tolist()
-            decoder_start_token_id, *text_prompt_ids = prompt_ids
-            # Slicing the text prompt ids in a manner consistent with the OpenAI implementation
-            # to accomodate context space for the prefix (see https://github.com/openai/whisper/blob/c09a7ae299c4c34c5839a76380ae407e7d785914/whisper/decoding.py#L599)
-            text_prompt_ids = text_prompt_ids[-self.config.max_length // 2 - 1 :]
-            # Set the decoder_start_token_id to <|startofprev|>
-            kwargs.update({"decoder_start_token_id": decoder_start_token_id})
+        # if prompt_ids is not None:
+        #     if kwargs.get("decoder_start_token_id") is not None:
+        #         raise ValueError(
+        #             "When specifying `prompt_ids`, you cannot also specify `decoder_start_token_id` as it gets overwritten."
+        #         )
+        #     prompt_ids = prompt_ids.tolist()
+        #     decoder_start_token_id, *text_prompt_ids = prompt_ids
+        #     # Slicing the text prompt ids in a manner consistent with the OpenAI implementation
+        #     # to accomodate context space for the prefix (see https://github.com/openai/whisper/blob/c09a7ae299c4c34c5839a76380ae407e7d785914/whisper/decoding.py#L599)
+        #     text_prompt_ids = text_prompt_ids[-self.config.max_length // 2 - 1 :]
+        #     # Set the decoder_start_token_id to <|startofprev|>
+        #     kwargs.update({"decoder_start_token_id": decoder_start_token_id})
 
-            # Update the max generation length to include the prompt
-            specified_max_length = kwargs.pop("max_new_tokens", None) or kwargs.pop("max_length", None)
-            default_max_length = generation_config.max_new_tokens or generation_config.max_length
-            non_prompt_max_length = specified_max_length or default_max_length
-            kwargs["max_new_tokens"] = non_prompt_max_length + len(text_prompt_ids)
+        #     # Update the max generation length to include the prompt
+        #     specified_max_length = kwargs.pop("max_new_tokens", None) or kwargs.pop("max_length", None)
+        #     default_max_length = generation_config.max_new_tokens or generation_config.max_length
+        #     non_prompt_max_length = specified_max_length or default_max_length
+        #     kwargs["max_new_tokens"] = non_prompt_max_length + len(text_prompt_ids)
 
-            # something seems wrong here. 
-            # generation_config.forced_decoder_ids is already set to None
-            # Reformat the forced_decoder_ids to incorporate the prompt
-            # non_prompt_forced_decoder_ids = (
-            #     kwargs.pop("forced_decoder_ids", None) or generation_config.forced_decoder_ids
-            # )
-            forced_decoder_ids = [
-                *text_prompt_ids,
-                generation_config.decoder_start_token_id,
-                *[token for _rank, token in forced_decoder_ids],
-                # *[token for _rank, token in non_prompt_forced_decoder_ids],
-            ]
-            forced_decoder_ids = [(rank + 1, token) for rank, token in enumerate(forced_decoder_ids)]
-            generation_config.forced_decoder_ids = forced_decoder_ids
+        #     # something seems wrong here. 
+        #     # generation_config.forced_decoder_ids is already set to None
+        #     # Reformat the forced_decoder_ids to incorporate the prompt
+        #     # non_prompt_forced_decoder_ids = (
+        #     #     kwargs.pop("forced_decoder_ids", None) or generation_config.forced_decoder_ids
+        #     # )
+        #     forced_decoder_ids = [
+        #         *text_prompt_ids,
+        #         generation_config.decoder_start_token_id,
+        #         *[token for _rank, token in forced_decoder_ids],
+        #         # *[token for _rank, token in non_prompt_forced_decoder_ids],
+        #     ]
+        #     forced_decoder_ids = [(rank + 1, token) for rank, token in enumerate(forced_decoder_ids)]
+        #     generation_config.forced_decoder_ids = forced_decoder_ids
 
         return super().generate(
             input_features,

@@ -59,7 +59,6 @@ class FlaxWhisperPipline:
         dtype=jnp.float32,
         batch_size=None,
         max_length=None,
-        prompt="",
     ):
         """
         Args
@@ -96,13 +95,12 @@ class FlaxWhisperPipline:
             batch_size if batch_size is not None else self.min_batch_size
         )  # we need a minimum of 1 batch per-device
 
-        self.prompt_ids = self.processor.get_prompt_ids(prompt)
+        # self.prompt_ids = self.processor.get_prompt_ids(prompt)
         def generate(params, input_features, forced_decoder_ids, return_timestamps):
             output_ids = self.model.pipeline_generate(
                 input_features,
                 params=params,
                 forced_decoder_ids=forced_decoder_ids,
-                prompt_ids=self.prompt_ids,
                 return_timestamps=return_timestamps,
                 max_length=self.max_length,
             )
@@ -169,7 +167,6 @@ class FlaxWhisperPipline:
                 input_features,
                 params=params,
                 forced_decoder_ids=forced_decoder_ids,
-                prompt_ids=self.prompt_ids,
                 return_timestamps=return_timestamps,
                 max_length=self.max_length,
             )
@@ -394,7 +391,9 @@ class FlaxWhisperPipline:
                 stride_left /= sampling_rate
                 stride_right /= sampling_rate
                 output["stride"] = chunk_len, stride_left, stride_right
-
+        print("model_outputs: ", model_outputs)
+        model_outputs = [50361, 1911, 577, 366, 291, 30] + model_outputs
+        print("model_outputs after: ", model_outputs)
         text, optional = self.tokenizer._decode_asr(
             model_outputs,
             return_timestamps=return_timestamps,
@@ -503,7 +502,6 @@ class FlaxWhisperPipline:
         model_outputs = []
         # iterate over our chunked audio samples
         for batch in dataloader:
-            print("!!!batch: ", batch)
             model_outputs.append(
                 self.forward(
                     batch, batch_size=batch_size, language=language, task=task, return_timestamps=return_timestamps
