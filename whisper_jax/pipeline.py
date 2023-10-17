@@ -503,6 +503,7 @@ class FlaxWhisperPipline:
         model_outputs = []
         # iterate over our chunked audio samples
         for batch in dataloader:
+            print("!!!batch: ", batch)
             model_outputs.append(
                 self.forward(
                     batch, batch_size=batch_size, language=language, task=task, return_timestamps=return_timestamps
