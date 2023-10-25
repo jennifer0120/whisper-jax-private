@@ -208,6 +208,7 @@ class FlaxWhisperPipline:
 
         forced_decoder_ids = []
 
+        is_multilingual = False
         if is_multilingual:
             if language is not None:
                 language = language.lower()
